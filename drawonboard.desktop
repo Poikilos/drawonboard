@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Draw on Board
+GenericName=Draw on Board
+Comment=Draw on Board
+Exec=python3 /usr/local/lib/drawonboard/run.py
+StartupNotify=false
+Path=/usr/local/lib/drawonboard
+Icon=drawonboard
+Type=Application
+Categories=Graphics;2DGraphics;RasterGraphics;
+Terminal=false
+# update_enable: true
+# update_enable: true

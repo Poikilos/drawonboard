@@ -1,4 +1,15 @@
-from tkinter import *
+#from tkinter import *
+
+#try:
+#    import Tkinter as tk     ## Python 2.x
+#except ImportError:
+#    import tkinter as tk     ## Python 3.x
+
+try:
+    from Tkinter import *     ## Python 2.x
+except ImportError:
+    from tkinter import *     ## Python 3.x
+
 from random import randint
 #  http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
 #  http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/index.html
@@ -9,21 +20,76 @@ class Application(Frame):
         super().__init__(master)
         self.radiobuttonValue = IntVar()
         self.radiobuttonValue.set(1)
-        self.toolsThickness = 4
+        self.toolsThickness = 3
         self.rgb = "#%02x%02x%02x" % (0, 0, 0)
 
         self.pack()
         self.createWidgets()
 
-        master.bind('a', self.thicknessPlus)
-        master.bind('s', self.thicknessMinus)
+        master.bind('=', self.thicknessPlus)
+        master.bind('+', self.thicknessPlus)
+        master.bind('-', self.thicknessMinus)
+
+    def getDotList(self, posA, posB):
+        posA = list(posA)
+        posB = list(posB)
+        results = []
+        deltas = list((0, 0))
+
+        dirs = list((1, 1))
+        for axis_i in range(0,2):
+            deltas[axis_i] = posB[axis_i] - posA[axis_i]
+            if posB[axis_i] < posA[axis_i]:
+                dirs[axis_i] = -1
+
+        loop_axis_i = 0
+        off_axis_i = 1
+        if deltas[1] > deltas[0]:
+            loop_axis_i = 1
+            off_axis_i = 0
+
+        this_pos = list((posA[0], posA[1]))
+        # walk_i = posA[loop_axis_i]
+        rel_i = 0
+        # walk_diff = posB[loop_axis_i] - posA[loop_axis_i]
+        # off_diff = posB[off_axis_i] - posA[off_axis_i]
+        iteration_count_max = 10000
+        iteration_count = 0
+        while True:
+            progress = 0
+            if deltas[loop_axis_i] != 0:
+                progress = float(rel_i) / float(deltas[loop_axis_i])
+            this_pos[off_axis_i] = posA[off_axis_i] + progress * deltas[off_axis_i]
+            results.append((this_pos[0], this_pos[1]))
+            if this_pos[loop_axis_i] == posB[loop_axis_i]:
+                break
+            # if walk_i == posB[loop_axis_i]:
+                # break
+            # walk_i += 1
+            this_pos[loop_axis_i] += dirs[loop_axis_i]
+            rel_i += dirs[loop_axis_i]
+            iteration_count += 1
+            if iteration_count > iteration_count_max:
+                print(
+                    "ERROR in getDotList: maximum iterations reached"
+                    + "{"
+                    + "this_pos["+str(loop_axis_i)+"]: " + str(this_pos[loop_axis_i]) + "; "
+                    + "this_pos["+str(off_axis_i)+"]: " + str(this_pos[off_axis_i]) + "; "
+                    + "posA: " + str(posA) + "; "
+                    + "posB: " + str(posB) + "; "
+                    + "dirs["+str(loop_axis_i)+"]: " + str(dirs[loop_axis_i]) + "; "
+                    + "dirs["+str(off_axis_i)+"]: " + str(dirs[off_axis_i]) + "; "
+                    + "progress: " + str(progress) + "; "
+                )
+                break
+        return results
 
     def createWidgets(self):
         self.myCanvas = Canvas(self, width = 1200,
-                                height = 800, relief=RAISED, borderwidth=5)
+                                height = 800, relief=RAISED, borderwidth=0)
         self.myCanvas.pack(side = LEFT)
         self.myCanvas.bind("<B1-Motion>", self.draw)
-        self.myCanvas.bind("<Button-1>", self.setPreviousXY)
+        self.myCanvas.bind("<Button-1>", self.setFirstXY)
         #-----------------------------------------------
 
         tk_rgb = "#%02x%02x%02x" % (128, 192, 200)
@@ -117,14 +183,14 @@ class Application(Frame):
                                     )
 
         self.buttonDeleteAll = Button(self.leftFrame, text = "clear paper",
-                                      command = self.delteAll)
+                                      command = self.deleteAll)
         self.buttonDeleteAll.grid(padx = 3, pady = 2,
                                     row = 11, column = 0,
                                     sticky = NW)
 
 #----------------------------------------------------------------------
     def setThickness(self, event):
-        print(self.myScale.get())
+        # print(self.myScale.get())
         self.toolsThickness = self.myScale.get()
 
     def setColor(self):
@@ -139,26 +205,42 @@ class Application(Frame):
             self.myEntry3.delete(0, END)
 
         except ValueError:
-            print("That's not an int!")
+            print("ERROR: Could not finish setColor--that's not an int!")
         # set focus to something else, not to mess with pressing keys: a,s
         self.focus()
 
-    def setPreviousXY(self, event):
-            print("now")
-            self.previousX = event.x
-            self.previousY = event.y
+    def setFirstXY(self, event):
+        # print("now")
+        self.firstX = event.x
+        self.firstY = event.y
+        self.previousX = event.x
+        self.previousY = event.y
+        self.previousDown = [False, False, False]  # mouse buttons
 
     def draw(self, event):
         # line 1
         if self.radiobuttonValue.get() == 1:
-            self.myCanvas.create_oval(event.x - self.toolsThickness,
-                                      event.y - self.toolsThickness,
-                                      event.x + self.toolsThickness,
-                                      event.y + self.toolsThickness,
-                                      fill = self.rgb
-                                      )
+            if self.previousDown[0]:
+                dots = self.getDotList((self.previousX, self.previousY), (event.x, event.y))
+                for dot in dots:
+                    self.myCanvas.create_oval(dot[0] - self.toolsThickness,
+                                              dot[1] - self.toolsThickness,
+                                              dot[0] + self.toolsThickness,
+                                              dot[1] + self.toolsThickness,
+                                              fill = self.rgb
+                                              )
+            else:
+                print("(verbose message in draw) was not down")
+                self.myCanvas.create_oval(event.x - self.toolsThickness,
+                                          event.y - self.toolsThickness,
+                                          event.x + self.toolsThickness,
+                                          event.y + self.toolsThickness,
+                                          fill = self.rgb
+                                          )
+
         #line 2
         elif self.radiobuttonValue.get() == 2:
+
             self.myCanvas.create_line(self.previousX, self.previousY,
                                       event.x, event.y,
                                       width = self.toolsThickness,
@@ -203,7 +285,11 @@ class Application(Frame):
                                       event.x + self.toolsThickness, event.y + self.toolsThickness,
                                       fill = tk_rgb
                                       )
-    def delteAll(self):
+        self.previousX = event.x
+        self.previousY = event.y
+        self.previousDown[0] = True
+
+    def deleteAll(self):
         self.myCanvas.delete("all")
 
     def thicknessPlus(self, event):
@@ -217,6 +303,6 @@ class Application(Frame):
             self.myScale.set(self.toolsThickness)
 
 root = Tk()
-root.title("SDP")
+root.title("Draw on Board")
 app = Application(root)
 root.mainloop()
