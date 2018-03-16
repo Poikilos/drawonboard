@@ -2,7 +2,11 @@
 Just draw on the board.
 
 ## Purpose
-This software is designed for situations where someone (even not "a computer person") just wants to draw on the screen and use the computer as a whiteboard. For this reason, any features that get in the way are subject to removal, and only features that contribute to presentation-style computer use will be added.
+This software is designed for presentation-style computer use, especially situations where someone (even not "a computer person") just wants to draw on the screen and use the computer as a whiteboard
+
+## Design goals
+* remove or hide features that hinder purpose
+* try to only add features that contribute to purpose
 
 ## Authors
 * poikilos (Jake Gustafson)
