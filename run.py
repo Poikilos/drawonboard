@@ -9,8 +9,8 @@ class Application(Frame):
         super().__init__(master)
         self.radiobuttonValue = IntVar()
         self.radiobuttonValue.set(1)
-        self.toolsThickness = 2
-        self.rgb = "#%02x%02x%02x" % (255, 255, 255)
+        self.toolsThickness = 4
+        self.rgb = "#%02x%02x%02x" % (0, 0, 0)
 
         self.pack()
         self.createWidgets()
@@ -19,10 +19,17 @@ class Application(Frame):
         master.bind('s', self.thicknessMinus)
 
     def createWidgets(self):
+        self.myCanvas = Canvas(self, width = 1200,
+                                height = 800, relief=RAISED, borderwidth=5)
+        self.myCanvas.pack(side = LEFT)
+        self.myCanvas.bind("<B1-Motion>", self.draw)
+        self.myCanvas.bind("<Button-1>", self.setPreviousXY)
+        #-----------------------------------------------
+
         tk_rgb = "#%02x%02x%02x" % (128, 192, 200)
 
         self.leftFrame = Frame(self, bg = tk_rgb)
-        self.leftFrame.pack(side = LEFT, fill = Y)
+        self.leftFrame.pack(side = RIGHT, fill = Y)
 
         self.label = Label(self.leftFrame, text = "choose a RGB color: ")
         self.label.grid(row = 0, column = 0, sticky = NW, pady = 2, padx = 3)
@@ -55,8 +62,8 @@ class Application(Frame):
                             orient = HORIZONTAL,
                             command = self.setThickness
                             )
-        self.myScale.set(2)
-        self.toolsThickness = 2
+        self.myScale.set(self.toolsThickness)
+        #self.toolsThickness = 2
         self.myScale.grid(
                           row = 4, column = 0,
                           pady = 2, padx = 3, sticky = S,
@@ -114,12 +121,6 @@ class Application(Frame):
         self.buttonDeleteAll.grid(padx = 3, pady = 2,
                                     row = 11, column = 0,
                                     sticky = NW)
-#----------------------------------------------------------------------
-        self.myCanvas = Canvas(self, width = 800,
-                                height = 500, relief=RAISED, borderwidth=5)
-        self.myCanvas.pack(side = RIGHT)
-        self.myCanvas.bind("<B1-Motion>", self.draw)
-        self.myCanvas.bind("<Button-1>", self.setPreviousXY)
 
 #----------------------------------------------------------------------
     def setThickness(self, event):
@@ -216,6 +217,6 @@ class Application(Frame):
             self.myScale.set(self.toolsThickness)
 
 root = Tk()
-root.title("Drawing program")
+root.title("SDP")
 app = Application(root)
 root.mainloop()
